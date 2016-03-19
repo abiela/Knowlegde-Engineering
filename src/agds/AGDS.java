@@ -47,10 +47,18 @@ public class AGDS {
                 for (int i = 0; i < objectRawValues.length - 1; i++) {
                     objectDoubleValues[i] = commaDelimiterFormat.parse(objectRawValues[i]).doubleValue();
                     ValueNode valueNode = new ValueNode(objectDoubleValues[i], recordNode);
-                    atributeNodes.get(i).addNode(valueNode);
+                    int indexValue = atributeNodes.get(i).getNodesList().indexOf(valueNode);
+
+                    if(indexValue == -1)
+                        atributeNodes.get(i).addNode(valueNode);
+                    else {
+                        Node existingValueNode = atributeNodes.get(i).getNodesList().get(indexValue);
+                        existingValueNode.addNode(recordNode);
+                    }
                 }
                 itemCounter++;
             }
+            sortAttributeNodes();
         }
 
         catch (FileNotFoundException e) {
@@ -66,10 +74,19 @@ public class AGDS {
         }
     }
 
+    private void sortAttributeNodes() {
+        for (AtributeNode atributeNode : atributeNodes)
+            atributeNode.sortNodes();
+    }
+
     public static void main(String[] args) {
         AGDS agds = new AGDS();
         agds.readFromFileClassAtFirst(agds.atributeNodes, new File(agds.IRIS_DATA_PATH));
         System.out.println("Founded classes: " + agds.classValues.size());
         System.out.println("Founded attr #1: " + agds.atributeNodes.get(0).getNodesList().size());
+
+        for (Node valueNode : agds.atributeNodes.get(0).getNodesList()) {
+            System.out.println("Next attr value: " + valueNode.getValue() + " Elements: " + valueNode.getNodesList().size());
+        }
     }
 }

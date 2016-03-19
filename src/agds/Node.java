@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * Created by biela.arek@gmail.com (Arek Biela) on 14.03.2016.
  */
-public abstract class Node<T> {
+public abstract class Node<T> implements Comparable<Node<T>>{
 
     private T value;
     private List<Node> nodesList;
@@ -42,5 +42,10 @@ public abstract class Node<T> {
     @Override
     public int hashCode() {
         return value.hashCode();
+    }
+
+    @Override
+    public int compareTo(Node<T> o) {
+        return 0;
     }
 }
