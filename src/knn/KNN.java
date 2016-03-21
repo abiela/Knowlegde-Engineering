@@ -1,7 +1,5 @@
 package knn;
 
-import com.sun.javaws.exceptions.InvalidArgumentException;
-
 import java.io.File;
 import java.util.*;
 

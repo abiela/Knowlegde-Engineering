@@ -31,7 +31,6 @@ public class AtributeNode extends Node<String> {
         for (Node node : getNodesList()) {
             if(node instanceof ValueNode) {
                 double valueWage = 1 - (Math.abs(((ValueNode) node).getValue() - (double) getNodesList().get(index).getValue()))/range;
-                System.out.println("Wage: " + valueWage);
                 ((ValueNode) node).setWage(valueWage);
             }
         }

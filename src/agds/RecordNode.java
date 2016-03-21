@@ -14,7 +14,6 @@ public class RecordNode extends Node<String> {
 
     public void addToAverageWage(double wage) {
         averageWage = averageWage + wage;
-        System.out.println("Current average wage: " + averageWage);
     }
 
     public Double getAverageWage() {
