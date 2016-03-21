@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * Created by biela.arek@gmail.com (Arek Biela) on 14.03.2016.
  */
-public abstract class Node<T> implements Comparable<Node<T>>{
+public abstract class Node<T extends Comparable<T>> implements Comparable<Node<T>> {
 
     private T value;
     private List<Node> nodesList;
@@ -20,14 +20,13 @@ public abstract class Node<T> implements Comparable<Node<T>>{
         return value;
     }
 
-    public List<Node> getNodesList() {
+    public List<? extends Node> getNodesList() {
         return nodesList;
     }
 
-    public void addNode(Node node) {
-        nodesList.add(node);
-    };
-
+    public <E extends Node> void addNode(E newNode) {
+        nodesList.add(newNode);
+    }
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
