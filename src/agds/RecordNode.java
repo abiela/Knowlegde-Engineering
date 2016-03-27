@@ -1,39 +1,82 @@
 package agds;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
 /**
- * Created by biela.arek@gmail.com (Arek Biela) on 14.03.2016.
+ * Created by biela.arek@gmail.com (Arek Biela) on 25.03.2016.
  */
-public class RecordNode extends Node<String> {
+public class RecordNode implements Comparable<RecordNode>, Resetable {
 
-    private Double averageWage = 0.0;
+    private String name;
+    private Double totalWage;
+    private ClassNode classNode;
+    private List<ValueNode> valueNodeList;
 
-    public RecordNode(String name, ClassValueNode classNode) {
-        super(name);
-        addNode(classNode);
+    /**
+     * Constructor, getter & setter.
+     */
+
+    public RecordNode(String name) {
+        this.name = name;
+        this.totalWage = 0.0d;
+        this.valueNodeList = new ArrayList<>();
     }
 
-    public void addToAverageWage(double wage) {
-        averageWage = averageWage + wage;
+    public void setValueNodeList(List<ValueNode> valueNodeList) {
+        this.valueNodeList = valueNodeList;
     }
 
-    public Double getAverageWage() {
-        return averageWage;
+    public String getName() {
+        return name;
+    }
+
+    public Double getTotalWage() {
+        return totalWage/valueNodeList.size();
+    }
+
+    public ClassNode getClassNode() {
+        return classNode;
     }
 
     @Override
-    public int compareTo(Node<String> o) {
-        double lhsValue = getAverageWage();
-        double rhsValue = 0.0;
-        if(o instanceof RecordNode) {
-            rhsValue = ((RecordNode) o).getAverageWage();
-        }
+    public int compareTo(RecordNode o) {
+        return totalWage.compareTo(o.getTotalWage());
+    }
 
-        if (lhsValue < rhsValue)
-            return -1;
+    @Override
+    public void onResetValue() {
+        totalWage = 0.0d;
+    }
 
-        else if (lhsValue == rhsValue)
-            return 0;
+    /**
+     * Adding new class node.
+     * @param classNode
+     */
+    public void addClassNode(ClassNode classNode) {
+        if (this.classNode == null)
+            this.classNode = classNode;
+    }
 
-        return 1;
+    /**
+     * Adding next value node to total wage value.
+     * @param wage
+     */
+    public void addToTotalWage(Double wage) {
+        totalWage = totalWage + wage;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        RecordNode that = (RecordNode) o;
+        return Objects.equals(name, that.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name);
     }
 }

@@ -1,7 +1,7 @@
 package knn;
 
 /**
- * Utils used in complex calculation.
+ * utils used in complex calculation.
  * Created by biela.arek@gmail.com (Arek Biela) on 05.03.2016.
  */
 public class MathUtils {

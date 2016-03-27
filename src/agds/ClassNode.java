@@ -8,22 +8,27 @@ import java.util.Objects;
 /**
  * Created by biela.arek@gmail.com (Arek Biela) on 25.03.2016.
  */
-public class NewClassNode extends NewNode {
+public class ClassNode extends Node {
 
     private String className;
-    private List<NewRecordNode> recordNodeList;
+    private List<RecordNode> recordNodeList;
 
-    public NewClassNode(String className) {
+
+    /**
+     * Constructor, getter & setter.
+     */
+
+    public ClassNode(String className) {
         this.className = className;
         this.recordNodeList = new ArrayList<>();
     }
 
-    public void addRecordNode(NewRecordNode recordNode) {
+    public void addRecordNode(RecordNode recordNode) {
         if (!recordNodeList.contains(recordNode))
             recordNodeList.add(recordNode);
     }
 
-    public List<NewRecordNode> getRecordNodeList() {
+    public List<RecordNode> getRecordNodeList() {
         return recordNodeList;
     }
 
@@ -31,12 +36,18 @@ public class NewClassNode extends NewNode {
         return className;
     }
 
+    /**
+     * Sorting nodes in descending order - first element is the most similar element from that class.
+     */
     public void sortNodes() {
-        Collections.sort(recordNodeList, Collections.<NewRecordNode>reverseOrder());
+        Collections.sort(recordNodeList, Collections.<RecordNode>reverseOrder());
     }
 
+    /**
+     * Reseting record nodes wage values.
+     */
     public void resetRecordNodes() {
-        for (NewRecordNode recordNode : recordNodeList)
+        for (RecordNode recordNode : recordNodeList)
             recordNode.onResetValue();
     }
 
@@ -44,7 +55,7 @@ public class NewClassNode extends NewNode {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        NewClassNode that = (NewClassNode) o;
+        ClassNode that = (ClassNode) o;
         return Objects.equals(className, that.className);
     }
 

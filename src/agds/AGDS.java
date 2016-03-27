@@ -15,8 +15,8 @@ public class AGDS {
     private static final String TAB_WHITESPACE = "\t";
     public static final String IRIS_DATA_PATH = "IrisData.txt";
 
-    public List<NewAttributeNode> param;
-    public Map<String, NewClassNode> newClassValues;
+    public List<AttributeNode> param;
+    public Map<String, ClassNode> newClassValues;
 
     public AGDS() {
         this.param = new ArrayList<>();
@@ -40,7 +40,7 @@ public class AGDS {
                 if (itemCounter == 0) {
                     String[] objectRawValues = nextObjectLine.split(TAB_WHITESPACE);
                     for (int i = 0; i < objectRawValues.length - 1; i++) {
-                        param.add(new NewAttributeNode(objectRawValues[i]));
+                        param.add(new AttributeNode(objectRawValues[i]));
                     }
                     itemCounter++;
                 }
@@ -54,23 +54,23 @@ public class AGDS {
 
                     //If read class doesn't exist in Map, put it there.
                     if (!newClassValues.containsKey(className)) {
-                        NewClassNode classValueNode = new NewClassNode(className);
+                        ClassNode classValueNode = new ClassNode(className);
                         newClassValues.put(className, classValueNode);
                     }
 
                     //Matching record node to class node.
-                    NewClassNode classValueNode = newClassValues.get(className);
-                    NewRecordNode recordNode = new NewRecordNode("Record " + String.valueOf(itemCounter));
+                    ClassNode classValueNode = newClassValues.get(className);
+                    RecordNode recordNode = new RecordNode("Record " + String.valueOf(itemCounter));
                     recordNode.addClassNode(classValueNode);
                     classValueNode.addRecordNode(recordNode);
 
-                    List<NewValueNode> valueNodeList = new ArrayList<>();
+                    List<ValueNode> valueNodeList = new ArrayList<>();
 
                     //Adding value nodes.
                     for (int i = 0; i < objectRawValues.length - 1; i++) {
                         objectDoubleValues[i] = commaDelimiterFormat.parse(objectRawValues[i]).doubleValue();
 
-                        NewValueNode newValueNode = new NewValueNode(objectDoubleValues[i]);
+                        ValueNode newValueNode = new ValueNode(objectDoubleValues[i]);
                         newValueNode.addRecordNode(recordNode);
                         newValueNode.setAttributeNode(param.get(i));
 
@@ -99,16 +99,16 @@ public class AGDS {
         resetNodesWages();
     }
 
-    public NewRecordNode findMostSimilarElement(double[] scannedValues) {
-        NewClassNode mostSimilarClass = null;
+    public RecordNode findMostSimilarElement(double[] scannedValues) {
+        ClassNode mostSimilarClass = null;
         resetNodesWages();
 
-        for (NewAttributeNode attributeNode : param) {
-            int foundIndex = findClosestAttributeValueIndex(attributeNode, new NewValueNode(scannedValues[param.indexOf(attributeNode)]));
+        for (AttributeNode attributeNode : param) {
+            int foundIndex = findClosestAttributeValueIndex(attributeNode, new ValueNode(scannedValues[param.indexOf(attributeNode)]));
             attributeNode.calculateWages(foundIndex);
         }
 
-        for (NewClassNode newClassNode : newClassValues.values()) {
+        for (ClassNode newClassNode : newClassValues.values()) {
             newClassNode.sortNodes();
 
             if (mostSimilarClass == null)
@@ -132,8 +132,8 @@ public class AGDS {
         return selectedValues;
     }
 
-    private int findClosestAttributeValueIndex(NewAttributeNode attributeNode, NewValueNode searchedValue) {
-        List<NewValueNode> newValueNodes = attributeNode.getValueNodeList();
+    private int findClosestAttributeValueIndex(AttributeNode attributeNode, ValueNode searchedValue) {
+        List<ValueNode> newValueNodes = attributeNode.getValueNodeList();
         int foundIndex = Collections.binarySearch(newValueNodes, searchedValue);
 
         if (foundIndex < 0) {
@@ -152,23 +152,23 @@ public class AGDS {
     }
 
     private void prepareValueNodes() {
-        for (NewAttributeNode attributeNode : param) {
+        for (AttributeNode attributeNode : param) {
             attributeNode.sortValueNodes();
         }
     }
 
     private void resetNodesWages() {
-        for (NewAttributeNode attributeNode : param)
+        for (AttributeNode attributeNode : param)
             attributeNode.resetValueNodes();
 
-        for (NewClassNode newClassNode : newClassValues.values())
+        for (ClassNode newClassNode : newClassValues.values())
             newClassNode.resetRecordNodes();
     }
 
     public static void main(String[] args) {
         AGDS irisAgds = new AGDS();
         irisAgds.launchAGDSStructureFromFile(new File(IRIS_DATA_PATH));
-        NewRecordNode mostSimilarClassNode = irisAgds.findMostSimilarElement(irisAgds.loadNextDoubleRecord());
+        RecordNode mostSimilarClassNode = irisAgds.findMostSimilarElement(irisAgds.loadNextDoubleRecord());
         System.out.println("Most similar class: " + mostSimilarClassNode.getClassNode().getClassName() + "(" + mostSimilarClassNode.getTotalWage() + ")");
     }
 }

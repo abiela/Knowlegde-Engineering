@@ -7,18 +7,18 @@ import java.util.List;
 /**
  * Created by biela.arek@gmail.com (Arek Biela) on 25.03.2016.
  */
-public class NewAttributeNode extends NewNode {
+public class AttributeNode extends Node {
 
     private final String value;
-    private List<NewValueNode> valueNodeList;
-    private NewValueNode minValueNode;
-    private NewValueNode maxValueNode;
+    private List<ValueNode> valueNodeList;
+    private ValueNode minValueNode;
+    private ValueNode maxValueNode;
 
     /**
      * Constuctrors, getters & setters
      */
 
-    public NewAttributeNode(String value) {
+    public AttributeNode(String value) {
         this.value = value;
         this.valueNodeList = new ArrayList<>();
     }
@@ -27,15 +27,15 @@ public class NewAttributeNode extends NewNode {
         return value;
     }
 
-    public List<NewValueNode> getValueNodeList() {
+    public List<ValueNode> getValueNodeList() {
         return valueNodeList;
     }
 
-    public NewValueNode getMinValueNode() {
+    public ValueNode getMinValueNode() {
         return minValueNode;
     }
 
-    public NewValueNode getMaxValueNode() {
+    public ValueNode getMaxValueNode() {
         return maxValueNode;
     }
 
@@ -44,10 +44,10 @@ public class NewAttributeNode extends NewNode {
      * @param valueNode - value candidate
      */
 
-    public void addNode(NewValueNode valueNode) {
+    public void addNode(ValueNode valueNode) {
 
         if (valueNodeList.contains(valueNode)) {
-            NewValueNode foundValueNode = valueNodeList.get(valueNodeList.indexOf(valueNode));
+            ValueNode foundValueNode = valueNodeList.get(valueNodeList.indexOf(valueNode));
             foundValueNode.getRecordNodeList().addAll(valueNode.getRecordNodeList());
         } else
             valueNodeList.add(valueNode);
@@ -67,14 +67,17 @@ public class NewAttributeNode extends NewNode {
      * Calculating wages based on most similar element in index
      */
     public void calculateWages(int indexValue) {
-        for (NewValueNode valueNode : getValueNodeList()) {
+        for (ValueNode valueNode : getValueNodeList()) {
             double wageValue = 1 - (Math.abs(valueNode.getValue() - getValueNodeList().get(indexValue).getValue())) / (maxValueNode.getValue() - minValueNode.getValue());
             valueNode.addCalcuatedWageToAllRecords(wageValue);
         }
     }
 
+    /**
+     * Reseting value nodes wage value.
+     */
     public void resetValueNodes() {
-        for (NewValueNode valueNode : valueNodeList)
+        for (ValueNode valueNode : valueNodeList)
             valueNode.onResetValue();
     }
 
