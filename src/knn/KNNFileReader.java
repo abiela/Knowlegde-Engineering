@@ -26,6 +26,9 @@ public class KNNFileReader {
             FileReader fileReader = new FileReader(file);
             BufferedReader bufferedReader = new BufferedReader(fileReader);
 
+            //TODO: handle first line of attributes
+            bufferedReader.readLine();
+
             String nextObjectLine;
             while((nextObjectLine = bufferedReader.readLine()) != null) {
                 String[] objectRawValues = nextObjectLine.split(TAB_WHITESPACE);
@@ -63,13 +66,15 @@ public class KNNFileReader {
         try {
             FileReader fileReader = new FileReader(file);
             BufferedReader bufferedReader = new BufferedReader(fileReader);
+            //TODO: handle first line of attributes
+            bufferedReader.readLine();
 
             String nextObjectLine;
             while((nextObjectLine = bufferedReader.readLine()) != null) {
                 String[] objectRawValues = nextObjectLine.split(TAB_WHITESPACE);
                 double[] objectDoubleValues = new double[objectRawValues.length - 1];
-                for (int i = 1; i < objectRawValues.length - 1; i++) {
-                    objectDoubleValues[i] = commaDelimiterFormat.parse(objectRawValues[i]).doubleValue();
+                for (int i = 1; i < objectRawValues.length; i++) {
+                    objectDoubleValues[i-1] = commaDelimiterFormat.parse(objectRawValues[i]).doubleValue();
                 }
                 KNNClassifableObject nextObject = new KNNClassifableObject(objectDoubleValues, objectRawValues[0]);
                 knnClassifableObjects.add(nextObject);
