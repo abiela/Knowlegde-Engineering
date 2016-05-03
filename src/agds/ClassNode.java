@@ -63,4 +63,11 @@ public class ClassNode extends Node {
     public int hashCode() {
         return Objects.hash(className);
     }
+
+    @Override
+    public String toString() {
+        return "ClassNode{" +
+                "className='" + className + '\'' +
+                '}';
+    }
 }

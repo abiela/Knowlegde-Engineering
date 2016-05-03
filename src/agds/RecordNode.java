@@ -32,6 +32,8 @@ public class RecordNode implements Comparable<RecordNode>, Resetable {
         return name;
     }
 
+    public Double getRawTotalWage() {return totalWage;}
+
     public Double getTotalWage() {
         return totalWage/valueNodeList.size();
     }
@@ -42,7 +44,7 @@ public class RecordNode implements Comparable<RecordNode>, Resetable {
 
     @Override
     public int compareTo(RecordNode o) {
-        return totalWage.compareTo(o.getTotalWage());
+        return totalWage.compareTo(o.getRawTotalWage());
     }
 
     @Override
@@ -78,5 +80,14 @@ public class RecordNode implements Comparable<RecordNode>, Resetable {
     @Override
     public int hashCode() {
         return Objects.hash(name);
+    }
+
+    @Override
+    public String toString() {
+        return "RecordNode{" +
+                "name='" + name + '\'' +
+                ", totalWage=" + totalWage +
+                ", classNode=" + classNode +
+                '}';
     }
 }

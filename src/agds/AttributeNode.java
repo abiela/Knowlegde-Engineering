@@ -3,6 +3,7 @@ package agds;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Created by biela.arek@gmail.com (Arek Biela) on 25.03.2016.
@@ -93,5 +94,18 @@ public class AttributeNode extends Node {
      */
     private void assignMaxValueNode() {
         maxValueNode = valueNodeList.get(valueNodeList.size() - 1);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        AttributeNode that = (AttributeNode) o;
+        return Objects.equals(value, that.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(value);
     }
 }

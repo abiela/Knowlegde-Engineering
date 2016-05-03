@@ -23,6 +23,11 @@ public class AGDS {
         this.newClassValues = new HashMap<>();
     }
 
+    /**
+     * Reading elements from file.
+     *
+     * @param file
+     */
     private void readFromFile(File file) {
         NumberFormat commaDelimiterFormat = NumberFormat.getInstance(Locale.GERMAN);
         System.out.println(Utils.getCurrentTimestamp() + "AGDS: Reading file: " + file.getPath() + " started.");
@@ -93,14 +98,29 @@ public class AGDS {
         }
     }
 
+    /**
+     * Running AGDS Structure from file.
+     *
+     * @param file
+     */
     public void launchAGDSStructureFromFile(File file) {
         readFromFile(file);
         prepareValueNodes();
         resetNodesWages();
     }
 
-    public RecordNode findMostSimilarElement(double[] scannedValues) {
-        ClassNode mostSimilarClass = null;
+    /**
+     * Database methods
+     */
+
+    /**
+     * Find the most similar elements based on scanned record value and elements quantity.
+     *
+     * @param scannedValues  - values to be checked
+     * @param elementsAmount - number of elements that we would like to return
+     * @return
+     */
+    public List<RecordNode> findMostSimilarElementsTotalWage(double[] scannedValues, int elementsAmount) {
         resetNodesWages();
 
         for (AttributeNode attributeNode : param) {
@@ -108,18 +128,173 @@ public class AGDS {
             attributeNode.calculateWages(foundIndex);
         }
 
+        List<RecordNode> recordNodeList = new ArrayList<>();
         for (ClassNode newClassNode : newClassValues.values()) {
-            newClassNode.sortNodes();
-
-            if (mostSimilarClass == null)
-                mostSimilarClass = newClassNode;
-
-            else if (newClassNode.getRecordNodeList().get(0).getTotalWage() > mostSimilarClass.getRecordNodeList().get(0).getTotalWage())
-                mostSimilarClass = newClassNode;
+            recordNodeList.addAll(newClassNode.getRecordNodeList());
         }
-        return mostSimilarClass.getRecordNodeList().get(0);
+
+        Collections.sort(recordNodeList, Collections.<RecordNode>reverseOrder());
+        return recordNodeList.subList(0, elementsAmount);
     }
 
+    /**
+     * Find the least similar elements based on scanned record value and elements quantity
+     * @param scannedValues - values to be checked
+     * @param elementsAmount - number of least similar elements
+     * @return
+     */
+    public List<RecordNode> findLeastSimilarElementsTotalWage(double[] scannedValues, int elementsAmount) {
+        resetNodesWages();
+
+        for (AttributeNode attributeNode : param) {
+            int foundIndex = findClosestAttributeValueIndex(attributeNode, new ValueNode(scannedValues[param.indexOf(attributeNode)]));
+            attributeNode.calculateWages(foundIndex);
+        }
+
+        List<RecordNode> recordNodeList = new ArrayList<>();
+        for (ClassNode newClassNode : newClassValues.values()) {
+            recordNodeList.addAll(newClassNode.getRecordNodeList());
+        }
+
+        Collections.sort(recordNodeList);
+        return recordNodeList.subList(0, elementsAmount);
+    }
+
+    /**
+     * Find the most similar elements based on fixed similarity rate.
+     * @param scannedValues - value to be checked
+     * @param similarityRate - threshold similarity value (range 0 - 1) - percentage rate
+     * @return
+     */
+    public List<RecordNode> findAboveSimilarityRate (double [] scannedValues, float similarityRate) {
+        resetNodesWages();
+
+        for (AttributeNode attributeNode : param) {
+            int foundIndex = findClosestAttributeValueIndex(attributeNode, new ValueNode(scannedValues[param.indexOf(attributeNode)]));
+            attributeNode.calculateWages(foundIndex);
+        }
+
+        List<RecordNode> recordNodeList = new ArrayList<>();
+        for (ClassNode newClassNode : newClassValues.values()) {
+            recordNodeList.addAll(newClassNode.getRecordNodeList());
+        }
+
+        Iterator<RecordNode> recordNodeIterator = recordNodeList.iterator();
+        while (recordNodeIterator.hasNext()) {
+            if (recordNodeIterator.next().getTotalWage() < similarityRate)
+                recordNodeIterator.remove();
+        }
+
+        return recordNodeList;
+    }
+
+    /**
+     * Find the most similar elements based on fixed similarity rate.
+     * @param scannedValues - value to be checked
+     * @param similarityRate - threshold similarity value
+     * @return
+     */
+    public List<RecordNode> findBelowSimilarityRate (double [] scannedValues, float similarityRate) {
+        resetNodesWages();
+
+        for (AttributeNode attributeNode : param) {
+            int foundIndex = findClosestAttributeValueIndex(attributeNode, new ValueNode(scannedValues[param.indexOf(attributeNode)]));
+            attributeNode.calculateWages(foundIndex);
+        }
+
+        List<RecordNode> recordNodeList = new ArrayList<>();
+        for (ClassNode newClassNode : newClassValues.values()) {
+            recordNodeList.addAll(newClassNode.getRecordNodeList());
+        }
+
+        Iterator<RecordNode> recordNodeIterator = recordNodeList.iterator();
+        while (recordNodeIterator.hasNext()) {
+            if (recordNodeIterator.next().getTotalWage() > similarityRate)
+                recordNodeIterator.remove();
+        }
+
+        return recordNodeList;
+    }
+
+    /**
+     * Find the most similar elements based on selected attribute's value range.
+     *
+     * @param attributeNode - attribute to be checked.
+     * @param minValue      - min attribute value.
+     * @param maxValue      - max attribute value.
+     * @return - list of records that match selected criteria.
+     */
+    public List<RecordNode> findInAttributeRange(String attributeNode, double minValue, double maxValue) {
+
+        if (param.indexOf(new AttributeNode(attributeNode)) == -1)
+            throw new IllegalArgumentException("Selected argument does not exist.");
+
+        AttributeNode selectedAttributeNode = param.get(param.indexOf(new AttributeNode(attributeNode)));
+        Set<RecordNode> recordsMatchingCriteria = new HashSet<>();
+
+        for (ValueNode valueNode : selectedAttributeNode.getValueNodeList()) {
+            if (valueNode.getValue() >= minValue && valueNode.getValue() <= maxValue)
+                recordsMatchingCriteria.addAll(valueNode.getRecordNodeList());
+        }
+
+        return new ArrayList<>(recordsMatchingCriteria);
+    }
+
+    /**
+     * Find max value of selected attribute.
+     * @param attributeNode - attribute to be checked
+     * @return
+     */
+    public List<RecordNode> findAttributeMax(String attributeNode) {
+        if (param.indexOf(new AttributeNode(attributeNode)) == -1)
+            throw new IllegalArgumentException("Selected argument does not exist.");
+
+        AttributeNode selectedAttributeNode = param.get(param.indexOf(new AttributeNode(attributeNode)));
+        return selectedAttributeNode.getMaxValueNode().getRecordNodeList();
+    }
+
+    /**
+     * Find min value of selected attribute.
+     * @param attributeNode - attribute to be checked.
+     * @return
+     */
+    public List<RecordNode> findAttributeMin(String attributeNode) {
+        if (param.indexOf(new AttributeNode(attributeNode)) == -1)
+            throw new IllegalArgumentException("Selected argument does not exist.");
+
+        AttributeNode selectedAttributeNode = param.get(param.indexOf(new AttributeNode(attributeNode)));
+        return selectedAttributeNode.getMinValueNode().getRecordNodeList();
+    }
+
+    /**
+     * Sort database by selected attribute
+     * @param attributeNode - attribute values to be sorted
+     * @return
+     */
+    public List<RecordNode> sortByAttribute (String attributeNode, Sort sort) {
+        if (param.indexOf(new AttributeNode(attributeNode)) == -1)
+            throw new IllegalArgumentException("Selected argument does not exist.");
+
+        AttributeNode selectedAttributeNode = param.get(param.indexOf(new AttributeNode(attributeNode)));
+        selectedAttributeNode.sortValueNodes();
+
+        List<RecordNode> recordNodeList = new ArrayList<>();
+        for (ValueNode valueNode : selectedAttributeNode.getValueNodeList()) {
+            recordNodeList.addAll(valueNode.getRecordNodeList());
+        }
+
+        if (sort.equals(Sort.DESCENDING)) {
+            Collections.reverse(recordNodeList);
+        }
+
+        return recordNodeList;
+    }
+
+    /**
+     * Load record based on double values to AGDS structure.
+     *
+     * @return
+     */
     private double[] loadNextDoubleRecord() {
         Scanner scanner = new Scanner(System.in);
         int loadTimes = param.size();
@@ -132,6 +307,13 @@ public class AGDS {
         return selectedValues;
     }
 
+    /**
+     * Finding the closest attribute value based on binary search algorithm.
+     *
+     * @param attributeNode
+     * @param searchedValue
+     * @return
+     */
     private int findClosestAttributeValueIndex(AttributeNode attributeNode, ValueNode searchedValue) {
         List<ValueNode> newValueNodes = attributeNode.getValueNodeList();
         int foundIndex = Collections.binarySearch(newValueNodes, searchedValue);
@@ -151,12 +333,18 @@ public class AGDS {
         return foundIndex;
     }
 
+    /**
+     * Sorting value nodes in AGDS structure.
+     */
     private void prepareValueNodes() {
         for (AttributeNode attributeNode : param) {
             attributeNode.sortValueNodes();
         }
     }
 
+    /**
+     * Reset node wages - used before next calcuation.
+     */
     private void resetNodesWages() {
         for (AttributeNode attributeNode : param)
             attributeNode.resetValueNodes();
@@ -168,7 +356,51 @@ public class AGDS {
     public static void main(String[] args) {
         AGDS irisAgds = new AGDS();
         irisAgds.launchAGDSStructureFromFile(new File(IRIS_DATA_PATH));
-        RecordNode mostSimilarClassNode = irisAgds.findMostSimilarElement(irisAgds.loadNextDoubleRecord());
-        System.out.println("Most similar class: " + mostSimilarClassNode.getClassNode().getClassName() + "(" + mostSimilarClassNode.getTotalWage() + ")");
+
+//        double[] loadValues = irisAgds.loadNextDoubleRecord();
+//        List<RecordNode> mostSimilarNodes = irisAgds.findMostSimilarElementsTotalWage(loadValues, 10);
+//        List<RecordNode> leastSimilarNodes = irisAgds.findLeastSimilarElementsTotalWage(loadValues, 10);
+//
+//        for (RecordNode mostSimilarNode : mostSimilarNodes) {
+//            System.out.println(mostSimilarNode.toString());
+//        }
+//
+//        for (RecordNode leastSimilarNode : leastSimilarNodes) {
+//            System.out.println(leastSimilarNode.toString());
+//        }
+
+        List<RecordNode> sortNodes = irisAgds.sortByAttribute("leaf-length", Sort.DESCENDING);
+        for (RecordNode sortNode : sortNodes) {
+            System.out.println(sortNode.toString());
+        }
+
+//        List<RecordNode> mostSimilarNodes = irisAgds.findMostSimilarElementsTotalWage(irisAgds.loadNextDoubleRecord(), 5);
+//
+//        for (RecordNode recordNode : mostSimilarNodes) {
+//            System.out.println(String.valueOf(mostSimilarNodes.get(mostSimilarNodes.indexOf(recordNode))) + ". record: " + recordNode.getClassNode().getClassName() + " wage value: " + recordNode.getTotalWage());
+//        }
+
+//        List<RecordNode> aboveSimilarityRate = irisAgds.findAboveSimilarityRate(irisAgds.loadNextDoubleRecord(), 0.9f);
+//
+//        for (RecordNode recordNode : aboveSimilarityRate) {
+//            System.out.println(recordNode);
+//        }
+
+//        List<RecordNode> belowSimilarityRate = irisAgds.findBelowSimilarityRate(irisAgds.loadNextDoubleRecord(), 0.6f);
+//
+//        for (RecordNode recordNode : belowSimilarityRate) {
+//            System.out.println(recordNode);
+//        }
+
+//        List<RecordNode> maxNodes = irisAgds.findAttributeMax("petal-width");
+//        for (RecordNode maxNode : maxNodes) {
+//            System.out.println(maxNode.toString());
+//        }
+//        List<RecordNode> inRangeNodes = irisAgds.findInAttributeRange("petal-width", 0.2d, 0.4d);
+//
+//        for (RecordNode inRangeNode : inRangeNodes) {
+//            System.out.println(inRangeNode.toString());
+//        }
     }
 }
+
